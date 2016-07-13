@@ -10,13 +10,14 @@ exports.index = function(req, res) {
 };
 
 exports.sync = function(request, result) {
-
+	var consumer_key = request.query.consumer_key;
+	var consumer_secret = request.query.consumer_secret;
 	var captivity_results = request.body;
 	captivity_results = captivity_results.root.product;
 
 	var options = {
 		host: 'www.captivity.co.za',
-		path: '/beta/wc-api/v3/products?filter[limit]=-1&consumer_key=ck_2e74f5404f2de79af11f87acf7d1f5e82bb8f43c&consumer_secret=cs_967f7f10757c72ad9e7cb7f5087bee77c1cd2b6a',
+		path: '/beta/wc-api/v3/products?filter[limit]=-1&consumer_key=' + consumer_key + '&consumer_secret=' + consumer_secret,
 		headers: {
 			"Content-Type": "application/json"
 		},
@@ -43,12 +44,14 @@ exports.sync = function(request, result) {
 	  			if (woocommerce_results[i].variations) {
 	  				for (var n = captivity_results.length - 1; n >= 0; n--) {
 	  					for (var o = woocommerce_results[i].variations.length - 1; o >= 0; o--) {
-	  						if (woocommerce_results[i].variations[o].stock_quantity !== captivity_results[n].stock_quantity) 
+	  						var woo_stock_quantity = +woocommerce_results[i].variations[o].stock_quantity;
+	  						var captivity_stock_quantity = +captivity_results[n].stock_quantity;
+	  						if (woo_stock_quantity !== captivity_stock_quantity) 
 	  						{
 		  						if (captivity_results[n].sku === woocommerce_results[i].variations[o].sku) {
 		  							var variation = {
-		  								'id': woocommerce_results[i].variations[o].id,
-		  								'stock_quantity': 200
+		  								id: woocommerce_results[i].variations[o].id,
+		  								stock_quantity: captivity_results[n].stock_quantity
 		  							}
 		  							variations.push(variation)
 		  						}
@@ -70,7 +73,6 @@ exports.sync = function(request, result) {
 	  	var results = {
 	  		'products': products
 	  	}
-
 	    result.json(results);
 	  });
 	}
